@@ -1,0 +1,545 @@
+<title>Mercury Demo Journey</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F3F4F7; --screen:#FCFCFE; --panel:#EDEFF4;
+  --ink:#232936; --dim:#5C6577; --faint:#8A93A5;
+  --line:#C9CEDA; --line-soft:#DDE1E9;
+  --ai:#6F5FD8; --ai-tint:rgba(111,95,216,.08); --ai-line:rgba(111,95,216,.45);
+  --hold:#A8741A; --hold-tint:rgba(168,116,26,.10);
+  --ok:#2E8B6A; --ok-tint:rgba(46,139,106,.10);
+  --no:#C25E5E; --no-tint:rgba(194,94,94,.09);
+  --portal:#3D7A99; --portal-tint:rgba(61,122,153,.10);
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme: dark){
+    --paper:#12161F; --screen:#181E2A; --panel:#1F2735;
+    --ink:#E2E7F0; --dim:#9AA4B6; --faint:#6B7688;
+    --line:#39424F; --line-soft:#2A3240;
+    --ai:#9C8FF2; --ai-tint:rgba(138,124,255,.12); --ai-line:rgba(156,143,242,.5);
+    --hold:#D9A13B; --hold-tint:rgba(217,161,59,.12);
+    --ok:#43B58A; --ok-tint:rgba(67,181,138,.12);
+    --no:#D97B7B; --no-tint:rgba(217,123,123,.12);
+    --portal:#5FA3C4; --portal-tint:rgba(95,163,196,.12);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#12161F; --screen:#181E2A; --panel:#1F2735;
+  --ink:#E2E7F0; --dim:#9AA4B6; --faint:#6B7688;
+  --line:#39424F; --line-soft:#2A3240;
+  --ai:#9C8FF2; --ai-tint:rgba(138,124,255,.12); --ai-line:rgba(156,143,242,.5);
+  --hold:#D9A13B; --hold-tint:rgba(217,161,59,.12);
+  --ok:#43B58A; --ok-tint:rgba(67,181,138,.12);
+  --no:#D97B7B; --no-tint:rgba(217,123,123,.12);
+  --portal:#5FA3C4; --portal-tint:rgba(95,163,196,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.55}
+.wrap{max-width:1100px;margin:0 auto;padding:0 22px}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+/* ============ header ============ */
+header{padding:40px 0 8px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ai);margin-bottom:10px}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(26px,4vw,38px);font-weight:700;letter-spacing:-.01em;line-height:1.1;text-wrap:balance}
+.sub{color:var(--dim);margin-top:10px;max-width:640px}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin:22px 0 6px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);align-items:center}
+.legend .k{display:inline-flex;align-items:center;gap:7px}
+.sw{width:13px;height:13px;border-radius:3px;display:inline-block}
+
+/* ============ journey map ============ */
+.mapwrap{overflow-x:auto;margin:26px 0 8px;padding-bottom:6px}
+.jmap{display:grid;grid-template-columns:88px repeat(9,minmax(96px,1fr));grid-template-rows:auto auto;gap:10px 8px;min-width:1020px;align-items:stretch}
+.lane-lbl{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);align-self:center;line-height:1.4}
+.stop{border:1.5px solid var(--line);border-radius:8px;background:var(--screen);padding:8px 9px;position:relative}
+.stop .t{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--faint)}
+.stop .n{font-weight:600;font-size:11.5px;line-height:1.25;margin-top:2px}
+.stop.portal{border-color:var(--portal);background:var(--portal-tint)}
+.stop.oms{border-color:var(--line)}
+.stop.aihit{border-color:var(--ai-line);background:var(--ai-tint)}
+.stop.dash{border-style:dashed}
+.hop{position:absolute;left:50%;width:1.5px;background:var(--line);height:12px}
+.hop.down{bottom:-11px}.hop.up{top:-11px}
+.mapnote{font-size:12px;color:var(--dim);margin-bottom:34px}
+
+/* ============ scenes ============ */
+.scene{display:grid;grid-template-columns:230px 1fr;gap:26px;padding:34px 0 10px;border-top:1px solid var(--line-soft)}
+.meta .clock{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint)}
+.meta h2{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;margin:4px 0 12px;line-height:1.2;text-wrap:balance}
+.meta .row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;padding:3px 9px;border-radius:4px;border:1.5px solid var(--line);color:var(--dim)}
+.badge.portal{border-color:var(--portal);color:var(--portal)}
+.badge.oms{border-color:var(--ink);color:var(--ink)}
+.persona{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--dim);margin:0 0 12px}
+.pv{width:22px;height:22px;border-radius:50%;background:var(--panel);border:1.5px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;color:var(--ink);flex:none}
+.say{font-size:12.5px;color:var(--dim);border-left:2px solid var(--line);padding:2px 0 2px 10px;margin-bottom:10px;font-style:italic}
+.say b{color:var(--ink);font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;display:block;margin-bottom:3px}
+.ws-ids{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ai)}
+
+/* ============ wireframe primitives ============ */
+.frame{border:1.5px solid var(--ink);border-radius:10px;background:var(--screen);overflow:hidden}
+.chrome{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1.5px solid var(--line);background:var(--panel)}
+.chrome .dots{display:flex;gap:4px}
+.chrome .dots i{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--line);display:block}
+.chrome .url{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:20px;padding:2px 12px;flex:1;max-width:340px}
+.chrome .who{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim)}
+.body{padding:14px;display:flex;gap:12px}
+.col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pane{border:1.5px solid var(--line);border-radius:8px;padding:10px 11px;background:var(--screen)}
+.pane.tint{background:var(--panel)}
+.pane.ai{border-color:var(--ai-line);background:var(--ai-tint)}
+.pane.hold{border-color:var(--hold);background:var(--hold-tint)}
+.lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.lbl .ai-mark{color:var(--ai);letter-spacing:0}
+.g{height:7px;border-radius:4px;background:var(--line-soft);display:block}
+.gs{display:flex;flex-direction:column;gap:6px}
+.txt{font-size:11.5px;color:var(--dim);line-height:1.5}
+.txt b{color:var(--ink);font-weight:600}
+.field{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:11.5px}
+.field .fl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);flex:none}
+.field .fv{font-weight:600;text-align:right}
+.field.ai{border-color:var(--ai-line);background:var(--ai-tint)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--line);color:var(--dim);white-space:nowrap}
+.chip.fail{border-color:var(--no);color:var(--no);background:var(--no-tint)}
+.chip.warn{border-color:var(--hold);color:var(--hold);background:var(--hold-tint)}
+.chip.pass{border-color:var(--ok);color:var(--ok);background:var(--ok-tint)}
+.chip.aic{border-color:var(--ai-line);color:var(--ai);background:var(--ai-tint)}
+.btn{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 12px;border-radius:6px;border:1.5px solid var(--ink);font-weight:600}
+.btn.ghost{border-color:var(--line);color:var(--dim);font-weight:400}
+.trow{display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--line-soft);font-size:11px}
+.trow:last-child{border-bottom:none}
+.trow .mono{font-size:10px;color:var(--dim)}
+.hl-hold{background:var(--hold-tint);border-radius:4px}
+.hl-ok{background:var(--ok-tint);border-radius:4px}
+.pbar{flex:1;height:5px;border-radius:3px;background:var(--line-soft);overflow:hidden;min-width:40px}
+.pbar i{display:block;height:100%;background:var(--ok)}
+.dot{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--ink);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;flex:none;vertical-align:1px}
+.callouts{margin:12px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:7px 22px}
+.callouts li{display:flex;gap:9px;font-size:12.5px;color:var(--dim);align-items:baseline}
+.callouts .dot{transform:translateY(2px)}
+.callouts b{color:var(--ink);font-weight:600}
+.wave{display:flex;align-items:flex-end;gap:2px;height:20px}
+.wave i{width:3px;border-radius:2px;background:var(--ai);opacity:.75}
+.toast{border:1.5px solid var(--ai-line);background:var(--ai-tint);border-radius:8px;padding:9px 11px}
+.arrownote{display:flex;align-items:center;gap:10px;margin:10px 0 0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim)}
+.arrownote .ln{flex:1;border-top:1.5px dashed var(--line)}
+footer{padding:40px 0 56px;color:var(--faint);font-size:11.5px}
+@media(max-width:760px){
+  .scene{grid-template-columns:1fr;gap:14px}
+  .body{flex-direction:column}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header><div class="wrap">
+  <div class="eyebrow">Mercury OMS · Demo Storyboard · v2 (real seeds)</div>
+  <h1>One order, front to back —<br>the 15-minute journey, screen by screen</h1>
+  <p class="sub">Wireframes for every on-screen moment in <span class="mono">docs/demo-script.md</span>. One continuous thread: Mrs.&nbsp;Yeung's call becomes a ticket, a blocked note becomes a compliant one, a rule written in English holds it, and the audit file writes itself.</p>
+  <div class="legend">
+    <span class="k"><span class="sw" style="background:var(--portal-tint);border:1.5px solid var(--portal)"></span> Mercury Wealth (portal, deployed)</span>
+    <span class="k"><span class="sw" style="background:var(--screen);border:1.5px solid var(--ink)"></span> Mercury OMS (this build)</span>
+    <span class="k"><span class="sw" style="background:var(--ai-tint);border:1.5px solid var(--ai-line)"></span> ✦ AI surface</span>
+    <span class="k"><span class="sw" style="background:var(--hold-tint);border:1.5px solid var(--hold)"></span> compliance hold</span>
+    <span class="k"><span class="sw" style="background:var(--ok-tint);border:1.5px solid var(--ok)"></span> pass / fill</span>
+    <span class="k"><span class="dot">1</span> callout → numbered note under each frame</span>
+  </div>
+</div></header>
+
+<div class="wrap">
+  <!-- ================= JOURNEY MAP ================= -->
+  <div class="mapwrap"><div class="jmap">
+    <div class="lane-lbl">Mercury<br>Wealth</div>
+    <div class="stop portal"><div class="t">0:00</div><div class="n">Morning cockpit</div><div class="hop down"></div></div>
+    <div></div><div></div><div></div><div></div><div></div><div></div>
+    <div class="stop portal"><div class="t">13:45</div><div class="n">Client cockpit — book updated</div><div class="hop down"></div></div>
+    <div class="stop portal dash"><div class="t">14:00</div><div class="n">Close: white-space matrix tab</div></div>
+
+    <div class="lane-lbl">Mercury<br>OMS</div>
+    <div class="stop oms"><div class="t">1:00</div><div class="n">Call opens a ticket</div><div class="hop up"></div></div>
+    <div class="stop aihit"><div class="t">1:30</div><div class="n">Voice → draft order</div></div>
+    <div class="stop aihit"><div class="t">4:00</div><div class="n">Suitability copilot</div></div>
+    <div class="stop aihit"><div class="t">7:00</div><div class="n">Rule in English</div></div>
+    <div class="stop oms"><div class="t">9:15</div><div class="n">Four-eyes approval</div></div>
+    <div class="stop oms"><div class="t">10:00</div><div class="n">FIX fills + RFQ</div></div>
+    <div class="stop aihit"><div class="t">12:30</div><div class="n">Audit narrative</div><div class="hop up"></div></div>
+    <div></div><div></div>
+  </div></div>
+  <p class="mapnote">Two apps, one seeded dataset. The journey hops Portal → OMS at the phone call and OMS → Portal after execution — both hops are deep links on shared ids, no re-keying. Violet stops are the four AI moments (white-space rows <span class="ws-ids">A12·G4 / G3·B12 / B13·B9 / F4·F2</span>).</p>
+
+  <!-- ================= SCENE 0 ================= -->
+  <section class="scene">
+    <div class="meta">
+      <div class="clock">0:00–1:30</div>
+      <h2>Scene 0 · Morning cockpit + the call</h2>
+      <div class="row"><span class="badge portal">MERCURY WEALTH</span></div>
+      <div class="persona"><span class="pv">WML</span> Wong Mei-Ling · RM</div>
+      <p class="say"><b>You say</b>"No slides — this is Mei-Ling's morning. Notice Mrs. Yeung in the feed. Her phone call is about to become the next fifteen minutes."</p>
+      <p class="txt">The deployed portal, untouched. The call card is the only staged element (demo hotkey).</p>
+    </div>
+    <div>
+      <div class="frame">
+        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">mercury-wealth.vercel.app</span><span class="who"><span class="pv">WML</span>meiling.wong@…</span></div>
+        <div class="body">
+          <div class="col" style="flex:0 0 120px">
+            <div class="pane tint" style="height:100%">
+              <div class="lbl">Nav</div>
+              <div class="gs"><span class="g" style="width:70%"></span><span class="g" style="width:55%"></span><span class="g" style="width:80%"></span><span class="g" style="width:60%"></span><span class="g" style="width:50%"></span></div>
+            </div>
+          </div>
+          <div class="col" style="flex:2">
+            <div class="pane">
+              <div class="lbl">Morning briefing <span class="dot" style="margin-left:auto">1</span></div>
+              <div class="gs"><span class="g" style="width:85%"></span><span class="g" style="width:60%"></span></div>
+            </div>
+            <div class="pane">
+              <div class="lbl">Attention feed</div>
+              <div class="trow"><span class="g" style="width:40%"></span><span class="mono" style="margin-left:auto">drift +2.1pp</span></div>
+              <div class="trow hl-ok" style="border:1px solid var(--line);padding:5px 8px"><b style="font-size:11.5px">Yeung Siu-Ha</b><span class="mono">review due · idle cash US$160k</span><span class="dot" style="margin-left:auto">2</span></div>
+              <div class="trow"><span class="g" style="width:35%"></span><span class="mono" style="margin-left:auto">CIES surplus</span></div>
+            </div>
+          </div>
+          <div class="col" style="flex:1.1">
+            <div class="toast">
+              <div class="lbl" style="color:var(--ai);margin-bottom:5px">◉ Incoming call <span class="dot" style="margin-left:auto">3</span></div>
+              <div style="font-weight:600;font-size:12.5px">Yeung Siu-Ha</div>
+              <div class="txt">72 · Balanced · US$3.2M</div>
+              <div style="margin-top:8px"><span class="btn" style="border-color:var(--ai);color:var(--ai)">Answer in OMS →</span></div>
+            </div>
+            <div class="pane"><div class="lbl">Agenda</div><div class="gs"><span class="g" style="width:75%"></span><span class="g" style="width:55%"></span></div></div>
+          </div>
+        </div>
+      </div>
+      <ol class="callouts">
+        <li><span class="dot">1</span><span>Real deployed Advisor Home — the room sees a live product from second zero.</span></li>
+        <li><span class="dot">2</span><span><b>Mrs. Yeung already in the feed</b> (review due, idle cash) — plants the client before the call.</span></li>
+        <li><span class="dot">3</span><span>Call card deep-links to <span class="mono">oms…/calls/live?clientId=cli_yeung_sh</span> — the Portal→OMS hop, same login.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 1 ================= -->
+  <section class="scene">
+    <div class="meta">
+      <div class="clock">1:30–4:00 · <span class="ws-ids">A12 G4 F2</span></div>
+      <h2>Scene 1 · Voice becomes a checked ticket</h2>
+      <div class="row"><span class="badge oms">MERCURY OMS</span></div>
+      <div class="persona"><span class="pv">WML</span> Wong Mei-Ling · RM</div>
+      <p class="say"><b>Audio plays</b>"…a Tencent note paying eight percent — the one that pays every quarter. I'd like to put five hundred thousand US dollars into it."</p>
+      <p class="say"><b>You say</b>"Nobody typed anything. Checks were running while she was still talking."</p>
+    </div>
+    <div>
+      <div class="frame">
+        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">mercury-oms…/calls/live</span><span class="who"><span class="pv">WML</span>OMS · Front office</span></div>
+        <div class="body">
+          <div class="col" style="flex:1.1">
+            <div class="pane">
+              <div class="lbl">Call · Yeung Siu-Ha <span class="chip" style="margin-left:auto;border-color:var(--no);color:var(--no)">● REC 00:23</span></div>
+              <div class="wave"><i style="height:6px"></i><i style="height:14px"></i><i style="height:9px"></i><i style="height:18px"></i><i style="height:11px"></i><i style="height:16px"></i><i style="height:7px"></i><i style="height:13px"></i><i style="height:17px"></i><i style="height:8px"></i><i style="height:12px"></i><i style="height:15px"></i></div>
+            </div>
+            <div class="pane ai" style="flex:1">
+              <div class="lbl"><span class="ai-mark">✦</span> Live transcript <span class="dot" style="margin-left:auto">1</span></div>
+              <div class="txt"><b>Yeung:</b> "…a Tencent note paying <b>eight percent</b>… <b>five hundred thousand US</b>…"</div>
+              <div class="gs" style="margin-top:7px"><span class="g" style="width:90%"></span><span class="g" style="width:70%"></span></div>
+              <div class="txt" style="margin-top:8px">🔗 Recording + transcript attached to the order <b>from birth</b> <span class="dot">4</span></div>
+            </div>
+          </div>
+          <div class="col" style="flex:1.3">
+            <div class="pane">
+              <div class="lbl">Draft ticket — materializing <span class="chip" style="margin-left:auto">DRAFT</span></div>
+              <div class="gs">
+                <div class="field"><span class="fl">Client</span><span class="fv">Yeung Siu-Ha · cli_yeung_sh</span></div>
+                <div class="field"><span class="fl">Side</span><span class="fv">Buy</span></div>
+                <div class="field ai"><span class="fl">Instrument</span><span class="fv">UBS Autocallable Note on Tencent 2027 <span class="dot">2</span></span></div>
+                <div class="field"><span class="fl">Notional</span><span class="fv">USD 500,000</span></div>
+              </div>
+              <div class="txt" style="margin-top:7px;color:var(--ai)">✦ resolved from "Tencent note paying eight percent" · confidence 0.97</div>
+            </div>
+            <div class="pane">
+              <div class="lbl">Pre-trade checks — running mid-call <span class="dot" style="margin-left:auto">3</span></div>
+              <div class="row" style="margin:0;display:flex;gap:6px;flex-wrap:wrap">
+                <span class="chip">⟳ Suitability</span><span class="chip">⟳ Cash</span><span class="chip">⟳ Concentration</span>
+              </div>
+            </div>
+            <div class="row" style="margin:0;display:flex;gap:6px"><span class="chip">UNSOLICITED · client-initiated <span class="dot">5</span></span></div>
+          </div>
+        </div>
+      </div>
+      <ol class="callouts">
+        <li><span class="dot">1</span><span>Transcript streams word-by-word in sync with the (pre-recorded) audio.</span></li>
+        <li><span class="dot">2</span><span><b>✦ Extraction</b> resolves the vague ask against the real product shelf — function-calling, not guessing.</span></li>
+        <li><span class="dot">3</span><span>Three checks spin <b>while the client is still talking</b> — results land in Scene 2.</span></li>
+        <li><span class="dot">4</span><span>Order + conversation are one object — the 7-year HKMA/SFC evidence point.</span></li>
+        <li><span class="dot">5</span><span>Auto-classified <b>unsolicited</b> from the transcript; watch this chip flip next scene.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 2 ================= -->
+  <section class="scene">
+    <div class="meta">
+      <div class="clock">4:00–7:00 · <span class="ws-ids">G3 B12</span></div>
+      <h2>Scene 2 · The copilot that sells instead of blocks</h2>
+      <div class="row"><span class="badge oms">MERCURY OMS</span></div>
+      <div class="persona"><span class="pv">WML</span> Wong Mei-Ling · RM</div>
+      <p class="say"><b>You say</b>"Every legacy OMS says ORDER REJECTED — CODE 4471. Mercury says <i>why</i>, then finds what she <i>can</i> buy."</p>
+      <p class="txt">The engine decides; the model explains. RM proposes the alternative on the call → order becomes solicited, rationale captured.</p>
+    </div>
+    <div>
+      <div class="frame">
+        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">mercury-oms…/tickets/MRC-2041</span><span class="who"><span class="pv">WML</span>OMS · Front office</span></div>
+        <div class="body">
+          <div class="col" style="flex:1.15">
+            <div class="pane">
+              <div class="lbl">Checks resolved <span class="dot" style="margin-left:auto">1</span></div>
+              <div class="row" style="display:flex;gap:6px;flex-wrap:wrap;margin:0">
+                <span class="chip fail">✕ Suitability</span><span class="chip warn">! Cash 160k / 500k</span><span class="chip pass">✓ Concentration</span>
+              </div>
+            </div>
+            <div class="pane ai">
+              <div class="lbl"><span class="ai-mark">✦</span> Copilot — why it fails <span class="dot" style="margin-left:auto">2</span></div>
+              <div class="txt">Product risk <b>6/7</b> vs her Balanced ceiling <b>4/7</b> · complex product vs knowledge: <b>Limited</b> · 65% knock-in, <b>0% capital protection</b></div>
+            </div>
+            <div class="pane ai">
+              <div class="lbl"><span class="ai-mark">✦</span> What can Mrs. Yeung buy? <span class="dot" style="margin-left:auto">3</span></div>
+              <div class="row" style="display:flex;gap:5px;flex-wrap:wrap;margin:0"><span class="chip">HK govt bonds</span><span class="chip">IG credit</span><span class="chip">Balanced funds</span><span class="chip aic">Protected notes ≤ risk 4</span></div>
+            </div>
+            <div class="pane ai">
+              <div class="lbl"><span class="ai-mark">✦</span> Rationale — drafted, RM edits <span class="dot" style="margin-left:auto">5</span></div>
+              <div class="gs"><span class="g" style="width:92%"></span><span class="g" style="width:78%"></span></div>
+            </div>
+          </div>
+          <div class="col" style="flex:1.25">
+            <div style="display:flex;gap:8px">
+              <div class="pane" style="flex:1;border-color:var(--no);background:var(--no-tint)">
+                <div class="lbl" style="color:var(--no)">Requested · blocked</div>
+                <div class="txt"><b>Autocall Tencent 2027</b><br>8% cond. coupon<br>KI 65% · protection 0%<br>risk <b>6/7</b></div>
+              </div>
+              <div class="pane" style="flex:1;border-color:var(--ok);background:var(--ok-tint)">
+                <div class="lbl" style="color:var(--ok)">Alternative · fits <span class="dot" style="margin-left:auto">4</span></div>
+                <div class="txt"><b>CPN on HSI 2029</b><br>70% participation<br><b>100% protected</b><br>risk <b>4/7</b> ✓</div>
+              </div>
+            </div>
+            <div class="pane">
+              <div class="lbl">Amended ticket</div>
+              <div class="gs">
+                <div class="field"><span class="fl">Instrument</span><span class="fv">JPM Capital-Protected Note on HSI 2029</span></div>
+                <div class="field"><span class="fl">Notional</span><span class="fv">USD 500,000</span></div>
+              </div>
+              <div class="row" style="display:flex;gap:6px;margin:8px 0 0"><span class="chip aic">SOLICITED · firm recommendation <span class="dot">6</span></span></div>
+            </div>
+            <div class="pane hold">
+              <div class="lbl" style="color:var(--hold)">Linked funding leg <span class="dot" style="margin-left:auto">7</span></div>
+              <div class="txt"><b>Sell 40,000 China Mobile 0941.HK</b> (80 lots) ≈ US$360k + 160k cash</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="callouts">
+        <li><span class="dot">1</span><span>Deterministic engine returns structured failures — red / amber / green chips.</span></li>
+        <li><span class="dot">2</span><span><b>✦ Plain-English "why"</b> the RM can read to the client — grounded on the engine output.</span></li>
+        <li><span class="dot">3</span><span>Pre-order eligibility view (B12) — the shelf filtered to her profile.</span></li>
+        <li><span class="dot">4</span><span><b>✦ Compliant alternative</b> (G3): same China view, a wrapper she can own. Client agrees on the call.</span></li>
+        <li><span class="dot">5</span><span>Copilot pre-drafts the rationale; <b>the RM edits and owns it</b> — saved as an event.</span></li>
+        <li><span class="dot">6</span><span>Chip animates unsolicited → <b>solicited</b>: the recommendation is now the firm's.</span></li>
+        <li><span class="dot">7</span><span>Cash check spawns the funding sale as a linked child order — the pair routes in Scene 4.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 3 ================= -->
+  <section class="scene">
+    <div class="meta">
+      <div class="clock">7:00–10:00 · <span class="ws-ids">B13 B9</span></div>
+      <h2>Scene 3 · A rule written in English catches the live order</h2>
+      <div class="row"><span class="badge oms">MERCURY OMS · COMPLIANCE</span></div>
+      <div class="persona"><span class="pv">NSF</span> Ng Sui-Fong · Compliance</div>
+      <div class="persona"><span class="pv">LKM</span> Lau Ka-Ming · Team lead (approver)</div>
+      <p class="say"><b>You say</b>"On your current system that's a vendor change request — sixty to ninety days. Watch Sui-Fong do it before lunch."</p>
+      <p class="txt">The killer beat: the rule deployed at 9:30 holds the order captured at 2:00.</p>
+    </div>
+    <div>
+      <div class="frame">
+        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">mercury-oms…/compliance/rules/new</span><span class="who"><span class="pv">NSF</span>OMS · Compliance</span></div>
+        <div class="body">
+          <div class="col" style="flex:1.2">
+            <div class="pane ai">
+              <div class="lbl"><span class="ai-mark">✦</span> New rule — plain English <span class="dot" style="margin-left:auto">1</span></div>
+              <div class="txt" style="font-style:italic">"For clients aged 65 or above, any structured product order over 5% of their AUM requires four-eyes approval and a completed vulnerable-client checklist before release."</div>
+            </div>
+            <div class="pane">
+              <div class="lbl">Compiled — reviewable, editable <span class="dot" style="margin-left:auto">2</span></div>
+              <div class="trow"><span class="mono">SCOPE</span><span class="txt">client age ≥ <b>65</b></span></div>
+              <div class="trow"><span class="mono">WHEN</span><span class="txt">structured product · notional &gt; <b>5%</b> AUM</span></div>
+              <div class="trow"><span class="mono">THEN</span><span class="txt">hold for four-eyes + vulnerable-client checklist</span></div>
+            </div>
+            <div class="row" style="display:flex;gap:8px;margin:0">
+              <span class="btn ghost">Back-test</span><span class="btn">Deploy VC-1 v1</span>
+            </div>
+          </div>
+          <div class="col" style="flex:1.3">
+            <div class="pane">
+              <div class="lbl">Back-test · last 12 months <span class="dot" style="margin-left:auto">3</span></div>
+              <div class="trow"><span class="mono">2026-03</span><b style="font-size:11px">Cheung Ka-Fai · 68 · PI</b><span class="mono" style="margin-left:auto">9.8% AUM</span></div>
+              <div class="trow"><span class="mono">2026-01</span><span class="g" style="width:32%"></span><span class="mono" style="margin-left:auto">7.2%</span></div>
+              <div class="trow"><span class="mono">2025-11</span><span class="g" style="width:38%"></span><span class="mono" style="margin-left:auto">6.1%</span></div>
+              <div class="txt" style="margin-top:6px">…<b>14 orders</b> would have been held — the threshold bites on <b>age, regardless of sophistication</b></div>
+            </div>
+            <div class="pane hold">
+              <div class="lbl" style="color:var(--hold)">Blotter — after deploy <span class="dot" style="margin-left:auto">4</span></div>
+              <div class="trow hl-hold" style="padding:5px 8px"><b style="font-size:11.5px">CPN HSI 2029 · Yeung</b><span class="chip warn" style="margin-left:auto">⏸ HELD · FOUR-EYES · VC-1 v1</span></div>
+              <div class="txt" style="margin-top:5px">500,000 / 3,200,000 = <b>15.6% AUM</b> — captured 8 min ago, held by a rule written 90 sec ago</div>
+            </div>
+            <div class="pane">
+              <div class="lbl">Approval · Lau Ka-Ming <span class="dot" style="margin-left:auto">5</span></div>
+              <div class="txt">Full context attached: call 🔗 · alternative · rationale</div>
+              <div class="row" style="display:flex;gap:6px;margin:7px 0 0;align-items:center"><span class="chip pass">☑ checklist 3/3</span><span class="btn" style="border-color:var(--ok);color:var(--ok)">Approve</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="callouts">
+        <li><span class="dot">1</span><span><b>✦ NL rule authoring</b> (B13) — compliance types a sentence, no vendor CR, no code.</span></li>
+        <li><span class="dot">2</span><span>Compiles to a deterministic, versioned rule — <b>shown back in English</b>; no black box, no LLM at runtime.</span></li>
+        <li><span class="dot">3</span><span>Back-test against the real seeded book — Cheung Ka-Fai (68, $50M PI) proves the age trigger.</span></li>
+        <li><span class="dot">4</span><span><b>The demo's peak</b>: Scene 1's live order pauses itself under the just-deployed rule.</span></li>
+        <li><span class="dot">5</span><span>Her real team lead approves with the vulnerable-client checklist (B9) — human decides, always.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 4 ================= -->
+  <section class="scene">
+    <div class="meta">
+      <div class="clock">10:00–12:30</div>
+      <h2>Scene 4 · Two market mechanisms, one blotter</h2>
+      <div class="row"><span class="badge oms">MERCURY OMS</span></div>
+      <div class="persona"><span class="pv">WML</span> Wong Mei-Ling · RM</div>
+      <p class="say"><b>You say</b>"The funding leg goes out over FIX — there's the ack, and the fills. The note goes to competition — three quotes back, best one lifted. No re-keying, no swivel chair."</p>
+      <p class="txt">Density kept deliberately — a "keep" from the research. FIX semantics are real; the counterparty is simulated.</p>
+    </div>
+    <div>
+      <div class="frame">
+        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">mercury-oms…/blotter</span><span class="who"><span class="pv">WML</span>OMS · Front office</span></div>
+        <div class="body">
+          <div class="col" style="flex:1.5">
+            <div class="pane" style="flex:1">
+              <div class="lbl">Order blotter — live <span class="dot" style="margin-left:auto">1</span></div>
+              <div class="trow"><span class="g" style="width:26%"></span><span class="chip" style="margin-left:auto">Working</span></div>
+              <div class="trow hl-ok" style="padding:5px 8px"><b style="font-size:11.5px">Sell 40,000 · 0941.HK</b><span class="pbar"><i style="width:62%"></i></span><span class="mono">25,000 / 40,000 · avg 71.85</span><span class="dot">2</span></div>
+              <div class="trow hl-hold" style="padding:5px 8px"><b style="font-size:11.5px">Buy US$500k · CPN HSI 2029</b><span class="chip aic" style="margin-left:auto">RFQ · 3 quotes</span><span class="dot">3</span></div>
+              <div class="trow"><span class="g" style="width:30%"></span><span class="chip" style="margin-left:auto">Filled</span></div>
+              <div class="trow"><span class="g" style="width:22%"></span><span class="chip" style="margin-left:auto">Working</span></div>
+              <div class="txt" style="margin-top:6px">Positions & cash projections recompute on every fill — same shared selectors as the portal</div>
+            </div>
+          </div>
+          <div class="col" style="flex:1">
+            <div class="pane tint">
+              <div class="lbl">FIX inspector <span class="dot" style="margin-left:auto">4</span></div>
+              <div class="mono" style="font-size:9.5px;line-height:1.8;color:var(--dim)">
+                → 35=D ClOrdID=MRC-2041-F 54=2 38=40000<br>
+                ← 35=8 ExecType=0 (Ack)<br>
+                ← 35=8 ExecType=F LastQty=10000 LastPx=71.90<br>
+                ← 35=8 ExecType=F LastQty=15000 LastPx=71.82
+              </div>
+            </div>
+            <div class="pane">
+              <div class="lbl">RFQ · 3 issuing desks <span class="dot" style="margin-left:auto">5</span></div>
+              <div class="trow"><span>HSBC</span><span class="mono" style="margin-left:auto">99.85</span></div>
+              <div class="trow"><span>UBS</span><span class="mono" style="margin-left:auto">99.60</span></div>
+              <div class="trow hl-ok" style="padding:4px 8px"><b>JPMorgan</b><span class="mono" style="margin-left:auto">99.45 ★ best</span></div>
+              <div class="row" style="display:flex;gap:6px;margin:7px 0 0;align-items:center"><span class="mono" style="font-size:9.5px;color:var(--faint)">quotes expire 0:24</span><span class="btn" style="margin-left:auto">Lift best</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="callouts">
+        <li><span class="dot">1</span><span>Seeded working orders keep the blotter alive — the pros' home screen, kept dense on purpose.</span></li>
+        <li><span class="dot">2</span><span>Equity leg: 3 partial fills stream in over ~45s with running average — classic blotter theater.</span></li>
+        <li><span class="dot">3</span><span>The note can't route to an exchange — it routes to <b>competition</b>.</span></li>
+        <li><span class="dot">4</span><span>Raw <span class="mono">35=D / 35=8</span> traffic for the tech room — simulator swaps for real broker connectivity, unchanged.</span></li>
+        <li><span class="dot">5</span><span>Staggered quotes, countdown, lift-best books the note. Every message becomes Scene 5 evidence.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 5 ================= -->
+  <section class="scene">
+    <div class="meta">
+      <div class="clock">12:30–14:00 · <span class="ws-ids">F4 F2</span></div>
+      <h2>Scene 5 · The audit file writes itself</h2>
+      <div class="row"><span class="badge oms">MERCURY OMS</span> <span class="badge portal">→ PORTAL</span></div>
+      <div class="persona"><span class="pv">NSF</span> Ng Sui-Fong · Auditor view</div>
+      <p class="say"><b>You say</b>"Eleven months from now the SFC asks: show us this was suitable. Today that's three days of file-pulling. Here: one click, eight seconds — and every sentence is a link."</p>
+    </div>
+    <div>
+      <div class="frame">
+        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">mercury-oms…/orders/MRC-2041/audit</span><span class="who"><span class="pv">NSF</span>OMS · Audit</span></div>
+        <div class="body">
+          <div class="col" style="flex:0.95">
+            <div class="pane">
+              <div class="lbl">Order event log <span class="dot" style="margin-left:auto">1</span></div>
+              <div class="mono" style="font-size:9.5px;line-height:2;color:var(--dim)">
+                09:47 voice call · rec 🔗<br>
+                09:48 ✦ extraction → draft<br>
+                09:49 suitability ✕ risk 6&gt;4<br>
+                09:53 ✦ alternative accepted<br>
+                09:54 reclass → solicited<br>
+                14:32 rule VC-1 v1 deployed<br>
+                14:33 HELD four-eyes<br>
+                14:41 approved · Lau K-M<br>
+                14:47 fills ×3 · avg 71.85<br>
+                14:52 RFQ lifted @ 99.45
+              </div>
+            </div>
+          </div>
+          <div class="col" style="flex:1.5">
+            <div class="pane ai" style="flex:1">
+              <div class="lbl"><span class="ai-mark">✦</span> Audit narrative — composed in 8s <span class="dot" style="margin-left:auto">2</span></div>
+              <div class="txt" style="line-height:2">Client initiated contact requesting a product outside her risk band <span class="chip aic">T1</span>. The RM proposed a capital-protected alternative and the order was reclassified as solicited, rationale recorded <span class="chip aic">E4</span>. The order was held under rule VC-1 v1 <span class="chip aic">R1</span> and approved with a completed vulnerable-client checklist <span class="chip aic">A1</span>, then executed across two legs at best of three quotes <span class="chip aic">F3</span>.</div>
+              <div class="txt" style="margin-top:8px;color:var(--faint)">Every chip deep-links: transcript timestamp · check · rule diff · approval · FIX message <span class="dot">3</span></div>
+            </div>
+            <div class="row" style="display:flex;gap:8px;margin:0">
+              <span class="btn ghost">Export evidence pack (PDF)</span>
+              <span class="btn" style="border-color:var(--portal);color:var(--portal)">View in client cockpit → <span class="dot">4</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="arrownote"><span>OMS</span><span class="ln"></span><span>deep link · hh_yeung</span><span class="ln"></span><span>PORTAL · positions updated — "one dataset, front to back"</span></div>
+      <ol class="callouts">
+        <li><span class="dot">1</span><span>The same event log the order <b>ran on</b> — narrative is a projection of it, not a hallucination surface.</span></li>
+        <li><span class="dot">2</span><span><b>✦ AI audit narrative</b> (F4): chronological, plain-English, citation per sentence.</span></li>
+        <li><span class="dot">3</span><span>Call-recording linkage (F2) closes the loop opened in Scene 1 — the 7-year evidence pack, one click.</span></li>
+        <li><span class="dot">4</span><span>Final hop back to the portal: Mrs. Yeung's cockpit shows the note in the book, cash moved.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= CLOSE ================= -->
+  <section class="scene">
+    <div class="meta">
+      <div class="clock">14:00–15:00</div>
+      <h2>Close · The white-space matrix</h2>
+      <div class="row"><span class="badge">BROWSER TAB · RESEARCH DASHBOARD</span></div>
+      <p class="say"><b>You say</b>"You just watched seven of these ten rows. Vendors shipping any of them today — including the system this bank runs: <b>zero of eleven</b>. The others treat AI as a sidebar. Mercury <i>is</i> the workflow. Let's talk about a pilot on your desk."</p>
+    </div>
+    <div>
+      <div class="frame">
+        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">OMS-Market-Intelligence-Dashboard.html</span></div>
+        <div class="body">
+          <div class="col" style="flex:1"><div class="pane ai"><div class="lbl"><span class="ai-mark">01</span> B13</div><div class="txt"><b>NL rule authoring</b> — demoed ✓</div></div></div>
+          <div class="col" style="flex:1"><div class="pane ai"><div class="lbl"><span class="ai-mark">02</span> G3</div><div class="txt"><b>AI suitability alternatives</b> — demoed ✓</div></div></div>
+          <div class="col" style="flex:1"><div class="pane ai"><div class="lbl"><span class="ai-mark">03</span> A12</div><div class="txt"><b>Voice order entry</b> — demoed ✓</div></div></div>
+          <div class="col" style="flex:1"><div class="pane ai"><div class="lbl"><span class="ai-mark">04</span> F4</div><div class="txt"><b>AI audit narratives</b> — demoed ✓</div></div></div>
+        </div>
+      </div>
+      <ol class="callouts">
+        <li><span class="dot">✓</span><span>End on the room's own market: the ranked white-space cards, then the pilot ask.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>
+    Wireframes are the visual companion to <span class="mono">docs/demo-script.md</span> — clocks, personas, seed ids and callouts match it 1:1. Mercury · internal ideation use.
+  </footer>
+</div>

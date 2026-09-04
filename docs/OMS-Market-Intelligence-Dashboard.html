@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMS Market Intelligence — HK/SG Private Banking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0C1017; --panel:#131A24; --panel2:#0F151E; --line:#222C3A;
+  --text:#DFE7F0; --dim:#8794A4; --faint:#5B6675;
+  --yes:#35B27E; --part:#D9A13B; --no:#4E5866; --unk:#39424F;
+  --ws:#8A7CFF; --ws-soft:rgba(138,124,255,.12);
+  --ts:#3D8FB8; --diff:#C88A3C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.55}
+a{color:#9DB4FF;text-decoration:none}
+a:hover{text-decoration:underline}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+/* ---------- Header ---------- */
+header{padding:36px 24px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101724 0%,var(--ink) 100%)}
+.wrap{max-width:1280px;margin:0 auto}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ws);margin-bottom:10px}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(24px,4vw,40px);font-weight:700;line-height:1.12;letter-spacing:-.01em}
+h1 .thin{color:var(--dim);font-weight:500}
+.sub{color:var(--dim);margin-top:10px;max-width:760px;font-size:13.5px}
+.stats{display:flex;flex-wrap:wrap;gap:28px;margin-top:22px}
+.stat .n{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700}
+.stat .l{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.stat.ws .n{color:var(--ws)}
+
+/* ---------- Nav ---------- */
+nav{position:sticky;top:0;z-index:50;background:rgba(12,16,23,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;padding:0 24px}
+nav a{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.06em;color:var(--dim);padding:13px 14px;white-space:nowrap;border-bottom:2px solid transparent}
+nav a:hover{color:var(--text);text-decoration:none}
+nav a.ws{color:var(--ws)}
+
+section{padding:44px 24px 8px}
+h2{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px}
+.secnote{color:var(--dim);font-size:13px;margin-bottom:20px;max-width:820px}
+h2 .tagn{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.15em;display:block;margin-bottom:6px;text-transform:uppercase}
+
+/* ---------- Legend & filters ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 12px;border:1px solid var(--line);border-radius:20px;background:var(--panel2);color:var(--dim);cursor:pointer;user-select:none}
+.chip.on{color:var(--text);border-color:var(--dim);background:var(--panel)}
+.chip.on.cws{color:var(--ws);border-color:var(--ws)}
+.chip.on.cts{color:var(--ts);border-color:var(--ts)}
+.chip.on.cdiff{color:var(--diff);border-color:var(--diff)}
+#q{background:var(--panel2);border:1px solid var(--line);border-radius:20px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11.5px;padding:7px 14px;min-width:200px;outline:none}
+#q:focus{border-color:var(--dim)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:6px 0 18px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim)}
+.legend span{display:flex;align-items:center;gap:6px}
+.dot{width:14px;height:14px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
+
+/* ---------- Matrix ---------- */
+.domain{margin-bottom:30px}
+.domain h3{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;padding:10px 0;display:flex;gap:10px;align-items:baseline}
+.domain h3 .code{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ws)}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th,td{padding:7px 6px;text-align:center;border-bottom:1px solid var(--line);font-size:12px}
+th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.04em;color:var(--dim);text-transform:uppercase;position:sticky;top:0;background:var(--panel2)}
+td.feat,th.feat{text-align:left;position:sticky;left:0;background:var(--panel2);min-width:230px;max-width:280px;padding-left:12px;z-index:2}
+tr.wsrow td.feat{box-shadow:inset 3px 0 0 var(--ws)}
+tr.wsrow{background:var(--ws-soft)}
+tr.wsrow td.feat{background:#171626}
+td.feat .fname{font-size:12.5px;color:var(--text)}
+td.feat .fid{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--faint);margin-right:6px}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;padding:1.5px 6px;border-radius:3px;letter-spacing:.06em;margin-left:6px;vertical-align:1px}
+.tag.TS{color:var(--ts);border:1px solid var(--ts)}
+.tag.DIFF{color:var(--diff);border:1px solid var(--diff)}
+.tag.WS{color:var(--ws);border:1px solid var(--ws);background:rgba(138,124,255,.08)}
+.cell{width:26px;height:20px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600}
+.cY{background:rgba(53,178,126,.16);color:var(--yes)}
+.cP{background:rgba(217,161,59,.14);color:var(--part)}
+.cN{background:rgba(78,88,102,.18);color:var(--no)}
+.cU{background:transparent;border:1px dashed var(--unk);color:var(--unk)}
+.cov{display:inline-block;width:44px;height:5px;border-radius:3px;background:var(--line);overflow:hidden;vertical-align:middle}
+.cov i{display:block;height:100%;background:var(--yes)}
+tr.hidden{display:none}
+
+/* ---------- White space ---------- */
+.wsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.wscard{background:linear-gradient(160deg,#171626 0%,var(--panel2) 70%);border:1px solid #2E2A52;border-radius:10px;padding:18px 18px 16px;position:relative}
+.wscard .rank{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;color:var(--ws);opacity:.85;line-height:1}
+.wscard h4{font-family:'Space Grotesk',sans-serif;font-size:15px;margin:8px 0 6px}
+.wscard p{font-size:12.5px;color:var(--dim)}
+.wscard .fid{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);position:absolute;top:18px;right:18px}
+
+/* ---------- Generations ---------- */
+.genband{display:flex;flex-direction:column;gap:12px}
+.gen{display:grid;grid-template-columns:120px 1fr;gap:16px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.gen .g{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px}
+.gen .era{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);margin-top:4px}
+.gen p{font-size:12.5px;color:var(--dim);margin-top:6px}
+.gen .vend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:3px 9px;border-radius:12px;border:1px solid var(--line);color:var(--text);background:var(--panel)}
+.gen.g4{border-color:#2E2A52}.gen.g4 .g{color:var(--ws)}
+
+/* ---------- Vendor gallery ---------- */
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}
+.vcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.vcard header{all:unset;display:flex;justify-content:space-between;align-items:baseline}
+.vcard h4{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600}
+.vcard .gtag{font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:2px 8px;border-radius:3px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.vcard .gtag.hl{color:var(--ws);border-color:var(--ws)}
+.vcard p{font-size:12.5px;color:var(--dim)}
+.vcard .flow{font-size:12px;color:var(--text);background:var(--panel);border-left:2px solid var(--line);padding:8px 10px;border-radius:0 6px 6px 0}
+.vcard .flow b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:var(--faint);display:block;margin-bottom:3px;text-transform:uppercase}
+.vcard .ai{font-size:12px;color:var(--ws)}
+.vcard ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+.vcard li{font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vcard li span{color:var(--faint)}
+.vcard .lbl{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:var(--faint);text-transform:uppercase;margin-top:2px}
+
+/* ---------- Kill/Keep/Leapfrog ---------- */
+.kkl{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.kcol{border:1px solid var(--line);border-radius:10px;padding:18px;background:var(--panel2)}
+.kcol h4{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;margin-bottom:12px}
+.kcol.kill h4{color:#D06A6A}.kcol.keep h4{color:var(--yes)}.kcol.leap h4{color:var(--ws)}
+.kcol.leap{border-color:#2E2A52;background:linear-gradient(160deg,#171626 0%,var(--panel2) 70%)}
+.kcol li{font-size:12.5px;color:var(--dim);margin:0 0 9px 16px}
+.kcol li::marker{color:var(--faint)}
+
+footer{padding:36px 24px 48px;color:var(--faint);font-size:11.5px;border-top:1px solid var(--line);margin-top:44px}
+footer p{max-width:900px;margin-bottom:6px}
+
+@media(max-width:640px){
+  section{padding:32px 14px 4px}
+  header{padding:28px 14px 16px}
+  nav .wrap{padding:0 8px}
+  td.feat,th.feat{min-width:180px}
+  .gen{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Mercury OMS · Market Intelligence Pack · Aug 2026</div>
+    <h1>Order Management Systems<br><span class="thin">HK/SG Private Banking — current state &amp; white space</span></h1>
+    <p class="sub">Feature-level vendor matrix + UI reference, merged from two research studies. Input pack for the reimagining session: every row is a candidate for keep / kill / rebuild-futuristic.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">11</div><div class="l">Vendors</div></div>
+      <div class="stat"><div class="n">65</div><div class="l">Features</div></div>
+      <div class="stat"><div class="n">8</div><div class="l">Domains</div></div>
+      <div class="stat ws"><div class="n" id="wsCount">10</div><div class="l">White-space rows</div></div>
+      <div class="stat"><div class="n">4</div><div class="l">UI generations</div></div>
+    </div>
+  </div>
+</header>
+
+<nav><div class="wrap">
+  <a href="#matrix">Feature Matrix</a>
+  <a href="#whitespace" class="ws">White Space</a>
+  <a href="#generations">UI Generations</a>
+  <a href="#gallery">Vendor UI Gallery</a>
+  <a href="#directions">Kill · Keep · Leapfrog</a>
+  <a href="#caveats">Caveats</a>
+</div></nav>
+
+<!-- ================= MATRIX ================= -->
+<section id="matrix"><div class="wrap">
+  <h2><span class="tagn">01 · Core deliverable</span>Feature × Vendor Matrix</h2>
+  <p class="secnote">Ratings are directional, scored for a HK private-banking use case. <b>Unknown ≠ No</b> — vendor docs under-document regulatory specifics; the distinction is preserved deliberately.</p>
+  <div class="controls">
+    <span class="chip on" data-f="ALL">All</span>
+    <span class="chip cts" data-f="TS">Table stakes</span>
+    <span class="chip cdiff" data-f="DIFF">Differentiators</span>
+    <span class="chip cws" data-f="WS">White space</span>
+    <input id="q" type="search" placeholder="filter features…" aria-label="Filter features">
+  </div>
+  <div class="legend">
+    <span><span class="dot cY">Y</span> Shipped, evidenced</span>
+    <span><span class="dot cP">P</span> Partial / via config or partner</span>
+    <span><span class="dot cN">N</span> Absent</span>
+    <span><span class="dot cU">?</span> Unknown — no evidence found</span>
+    <span><span class="cov" style="width:30px"><i style="width:60%"></i></span> "Yes" coverage across 11 vendors</span>
+  </div>
+  <div id="domains"></div>
+</div></section>
+
+<!-- ================= WHITE SPACE ================= -->
+<section id="whitespace"><div class="wrap">
+  <h2><span class="tagn">02 · The opening</span>White Space — absent across all 11 vendors</h2>
+  <p class="secnote">Ranked by strategic value for an AI-native build. These rows are uncontested today; the shipped state of the art (Aladdin Copilot, Avaloq Engage) points at the direction, not a finished target.</p>
+  <div class="wsgrid" id="wslist"></div>
+</div></section>
+
+<!-- ================= GENERATIONS ================= -->
+<section id="generations"><div class="wrap">
+  <h2><span class="tagn">03 · Look &amp; feel landscape</span>The 4 UI Generations</h2>
+  <p class="secnote">Where a vendor sits predicts almost everything about its look-and-feel. No institutional OMS has shipped a natively AI-first order workflow — AI is universally an overlay. That is the leapfrog opportunity.</p>
+  <div class="genband" id="gens"></div>
+</div></section>
+
+<!-- ================= GALLERY ================= -->
+<section id="gallery"><div class="wrap">
+  <h2><span class="tagn">04 · Current-state screens</span>Vendor UI Gallery &amp; Evidence Links</h2>
+  <p class="secnote">Per vendor: paradigm, the on-screen order flow, AI interaction pattern, and links where the screens can actually be seen (demos, manuals, app-store listings). Most vendor screenshots sit behind demo walls — these are the publicly viewable ones.</p>
+  <div class="vgrid" id="vendors"></div>
+</div></section>
+
+<!-- ================= DIRECTIONS ================= -->
+<section id="directions"><div class="wrap">
+  <h2><span class="tagn">05 · Into the reimagining session</span>Kill · Keep · Leapfrog</h2>
+  <p class="secnote">Observed design patterns to kill, keep, or leapfrog when rebuilding for the AI era.</p>
+  <div class="kkl">
+    <div class="kcol kill"><h4>KILL</h4><ul>
+      <li>IE-era / thick-client multi-window navigation and module trees (Ayers GTS web, Avaloq RM Workplace ribbon)</li>
+      <li>Re-keying across OMS / EMS / back office — the "swivel chair"</li>
+      <li>Modal-heavy, form-first order tickets demanding many fields before any validation</li>
+      <li>Training-course-mandatory complexity as a permanent state</li>
+    </ul></div>
+    <div class="kcol keep"><h4>KEEP</h4><ul>
+      <li>Dense real-time blotter as the trader's home — density is a feature for pros (Bloomberg, CRD)</li>
+      <li>Single golden dataset front-to-back (Enfusion, Limina)</li>
+      <li>Inline pre-trade compliance at the point of trade — an inline alert, never a separate app</li>
+      <li>Exception-based dashboards surfacing only anomalies (Limina)</li>
+      <li>Customizable per-role layouts and profiles (CRD, Enfusion)</li>
+    </ul></div>
+    <div class="kcol leap"><h4>LEAPFROG</h4><ul>
+      <li>Conversational + command-bar as the primary navigation layer — app-context-aware natural language (Aladdin Copilot model)</li>
+      <li>Natural-language order entry with agentic pre-checks returning a reviewable, compliance-checked draft ticket</li>
+      <li>Notification-driven, mobile-first RM workflows (Engage + Enfusion mobile routing as proof points)</li>
+      <li>Consumer-grade polish at institutional density — moomoo as the aesthetic benchmark</li>
+      <li>AI guardrails as first-class UI: permission-dependent, boundary-limited, trust surfaced in the interface</li>
+    </ul></div>
+  </div>
+</div></section>
+
+<!-- ================= CAVEATS ================= -->
+<footer id="caveats"><div class="wrap">
+  <p><b>Caveats.</b> Ratings draw partly on vendor marketing; Domain B ratings for HK-specific features are often Partial/Unknown by necessity, not proof of absence. Ayers cells rely partly on inference from HKEX certification and market share (BCAN tagging rated Partial, not Yes). AI cells count production-shipped features only. Review-site volumes for institutional systems are thin — treat quotes as directional. Figures such as market shares and AUA are vendor self-reported unless attributed to third parties. Sources and full evidence notes live in the two companion research reports (feature matrix study + UI reference study).</p>
+  <p class="mono" style="margin-top:12px">MERCURY · OMS MARKET INTELLIGENCE · COMPILED AUG 2026 · INTERNAL IDEATION USE</p>
+</div></footer>
+
+<script>
+const VENDORS = ["Ayers","Avaloq","Temenos","FNZ","CRD","BBG AIM","Horizon","iFAST","Broadridge","Enfusion","Limina"];
+
+/* rating strings: one char per vendor in VENDORS order. Y P N U */
+const DATA = [
+{code:"A",name:"Order Capture & Ticket UX",rows:[
+["A1","Multi-asset single ticket (equities/ETFs)","TS","YYYYYYYYYYY"],
+["A2","Bonds / fixed income entry","TS","YYYYYYYYYYY"],
+["A3","Mutual funds entry + fund platform connectivity","TS","YYYYPPNYPPP"],
+["A4","Structured products order / RFQ workflow","DIFF","PYYPPPYPPNN"],
+["A5","FX orders","TS","UYYPYYPNYYY"],
+["A6","Listed derivatives / options","TS","YYYPYYYNYYY"],
+["A7","OTC derivatives capture","DIFF","UYYNYYYNYPP"],
+["A8","Virtual assets / crypto orders","DIFF","YYNNNNYNNPN"],
+["A9","Block order entry","TS","YYYYYYYPYYY"],
+["A10","Mobile RM order-entry app","DIFF","YYPYPPNYNPP"],
+["A11","Client self-service e-trading portal","DIFF","YYYYNNNYNNN"],
+["A12","Voice / conversational order entry","WS","NPNNNNNNNNN"],
+["A13","Order templates / baskets / model-based generation","TS","PYYYYYYPYYY"],
+["A14","Pre-filled ticket from CRM / client context","DIFF","UYPYPPNPNPP"]
+]},
+{code:"B",name:"Pre-Trade Compliance & Suitability",rows:[
+["B1","Client risk profile vs product risk matching","TS","PYYYYPNYPPP"],
+["B2","Professional / Accredited Investor gating","DIFF","PPPPPUNYUUU"],
+["B3","SFC complex product / VA knowledge / DKA handling","DIFF","PPPPUUNPUNN"],
+["B4","Solicited vs unsolicited classification","DIFF","UPPPPUNPUNN"],
+["B5","Order rationale capture (HKMA/SFC)","DIFF","UPPPPUNPUNN"],
+["B6","Concentration limit checks","TS","PYYYYYPPYYY"],
+["B7","Restricted / watch list screening","TS","PYYYYYPPYYY"],
+["B8","Credit / Lombard margin check pre-release","DIFF","PYYPPPYNPPP"],
+["B9","Vulnerable / elderly client safeguards","WS","NPPPUNNUNNN"],
+["B10","Cross-border marketing / solicitation rules engine","DIFF","UYPPPUNUUNN"],
+["B11","Suitability override + four-eyes approval","TS","PYYYYPNPPPP"],
+["B12","Pre-order \u201cwhat can this client buy\u201d eligibility view","DIFF","UPPPPNNPNNN"],
+["B13","Natural-language rule authoring","WS","NNPNNNNNNNN"],
+["B14","Client-configurable rules without vendor CR","DIFF","NPYPYYPNYYY"]
+]},
+{code:"C",name:"Routing & Execution",rows:[
+["C1","FIX connectivity to brokers","TS","YYYYYYYPYYY"],
+["C2","HKEX direct / certified connectivity","DIFF","YPPPPPYYPPP"],
+["C3","SGX connectivity","DIFF","YPPPPYYYYPP"],
+["C4","Global markets routing (US/EU)","TS","YYYYYYYYYYY"],
+["C5","Algo trading access","TS","YPPPYYYNYYP"],
+["C6","Smart order routing","DIFF","PNNNYYYNYPN"],
+["C7","Internal desk / manual order handling queue","TS","YYYYYYYPYYY"],
+["C8","RFQ to multiple issuers (SP / bonds)","DIFF","PYPPYYYYYPN"],
+["C9","Broker network / hub membership (NYFIX etc.)","DIFF","PPNPPYPNYYP"]
+]},
+{code:"D",name:"Allocation & Discretionary",rows:[
+["D1","Block-to-account allocation engine","TS","PYYYYYYPYYY"],
+["D2","Average pricing across allocations","TS","PYYYYYYPYYY"],
+["D3","Discretionary mandate bulk rebalancing to orders","DIFF","NYYYYYNPPYY"],
+["D4","Model-drift-triggered order generation","DIFF","NYYYYYNPPYY"]
+]},
+{code:"E",name:"Post-Trade",rows:[
+["E1","Real-time fills / position update","TS","YYYYYYYYYYY"],
+["E2","Trade confirmations generation","TS","YYYYYYPYYYY"],
+["E3","Settlement instruction generation","TS","YYYYYYPYYYY"],
+["E4","Corporate actions handling","TS","UYYYPYNYYYY"],
+["E5","Best execution monitoring / TCA","DIFF","UPPPYYPNYPP"],
+["E6","Regulatory transaction reporting (HKIDR/BCAN, MAS)","DIFF","PPPPPYNPYPP"],
+["E7","Fee / commission calculation","TS","PYYYPYNYYYY"]
+]},
+{code:"F",name:"Audit & Surveillance",rows:[
+["F1","Full order event audit trail","TS","YYYYYYYYYYY"],
+["F2","Call recording integration / linkage to orders","WS","NPNNNNNNNNN"],
+["F3","Trade surveillance / anomaly detection","DIFF","PPPPPPPPYPP"],
+["F4","AI-generated audit narratives / compliance summaries","WS","NPPNNNNNNNN"],
+["F5","Compliance dashboard / exception queue","TS","PYYYYYPPYYY"]
+]},
+{code:"G",name:"AI & Intelligence (production-shipped only)",rows:[
+["G1","LLM copilot / assistant in product","DIFF","NPPPPPNNPNN"],
+["G2","AI order anomaly detection","WS","NPPNPPNNYNN"],
+["G3","AI suitability assistance / alternatives","WS","NPNNNNNNNNN"],
+["G4","Voice transcription integrated to workflow","WS","NPNPNNNNNNN"],
+["G5","Predictive analytics on client trading behavior","DIFF","NYPYPPNNPNN"]
+]},
+{code:"H",name:"Architecture & Integration",rows:[
+["H1","Cloud / SaaS deployment available","TS","PYYYYYPYYYY"],
+["H2","Public / documented APIs","TS","YYYYYYYPYYY"],
+["H3","Event streaming / webhooks","DIFF","UYYPPPPUPYY"],
+["H4","Real-time core banking integration vs batch","DIFF","YYYYPPYPPYY"],
+["H5","Low-code / no-code config tooling","DIFF","NPYPYYPNYPP"],
+["H6","White-label / UI customization","TS","PYYYYPPYYPP"],
+["H7","Data residency options for HK/SG","DIFF","YYPYPPPYPPP"]
+]}
+];
+
+const WS_RANKED = [
+["B13","Natural-language rule authoring","Absent everywhere (only Temenos low-code hints). Lets compliance author HK/SG suitability and complex-product rules in plain language — kills the vendor change-request dynamic."],
+["G3","AI suitability assistance / alternatives","No vendor ships AI-driven \u201csuggest a compliant alternative product\u201d at order time. Turns compliance from friction into a selling tool."],
+["A12","Voice / conversational order entry","Near-total white space. RM speech or chat to a structured, compliance-checked ticket — one workflow instead of two."],
+["F4","AI-generated audit narratives","Only nascent hints (Avaloq/Temenos). Large HKMA/SFC audit-efficiency payoff against the \u22657-year documentation obligation."],
+["G2","AI order anomaly detection","Only Broadridge (surveillance) approaches it; white space in wealth OMS."],
+["B12","Pre-order \u201cwhat can this client buy\u201d view","Mostly absent. High RM-productivity value under HK PI / complex-product rules."],
+["G4","Voice transcription in workflow","White space beyond Avaloq hints — the richest order-intent data in the bank goes unused today."],
+["F2","Call-recording linkage to orders","White space with strong HK suitability-evidence value."],
+["B9","Vulnerable / elderly client safeguards","White space; a rising HKMA supervisory priority."],
+["G5","Predictive client-behavior analytics","Partial at Avaloq/FNZ — a differentiator not yet closed, adjacent to white space."]
+];
+
+const GENS = [
+["Gen 1","IE-era / terminal · 2005–2012 look","Dense, form-driven, monochrome-with-red/green grids; multi-window desktop clients originally built for Internet Explorer.",["Hundsun Ayers GTS","Temenos Transact securities","Avaloq RM Workplace"],""],
+["Gen 2","Bloomberg blotter · function-key institutional","Ultra-dense dark grids, keyboard-and-command driven, \u27E8GO\u27E9-style navigation. Density as a feature.",["Bloomberg AIM","Charles River IMS","Broadridge / Itiviti","Horizon"],""],
+["Gen 3","Modern web SaaS · 2018–2025 look","Browser-native, customizable panels, lighter palettes, exception-based dashboards, drag-drop.",["Enfusion","Limina","FNZ","Avaloq Wealth / Engage","Temenos Wealth FO","iFAST"],""],
+["Gen 4","AI-native overlay · 2024+","Conversational copilots layered on top of Gen-2/3 platforms — chat sidebar + natural-language query. Still an overlay, never the order workflow itself.",["Aladdin Copilot (benchmark)","Avaloq Engage / Insight","FNZ advisor copilots"],"g4"]
+];
+
+const VCARDS = [
+{n:"Hundsun Ayers",g:"Gen 1 · incumbent",hl:false,
+ p:"Form-based multi-module web/desktop client; older GTS web built for IE, newer HTML5 version available. Utilitarian, dense, HK red-up/green-down. >50% claimed HK broker share; white-label mobile apps per broker.",
+ f:"Click Buy/Sell → market / type / code / price / qty → Order → confirm dialog. ~3–4 clicks; Portfolio row click prefills the ticket.",
+ ai:"None in the HK front-end (parent Hundsun's AI ships in mainland products only).",
+ links:[["ayers.com.hk/demo/buysell-en.html","Web order-entry demo with screenshots"],["ayers.com.hk/demo/index-en.html","Web trading system demo menu"],["ayers.com.hk/download/AyersGTS_Internet_UserManual_Eng.pdf","Internet client manual (screens)"],["play.google.com/store/apps/details?id=hk.com.ayers.elong.trade","White-label Android app, 6 screenshots"],["hundsun.com.hk/en/productAction/trading","Vendor product page"]]},
+{n:"Avaloq",g:"Gen 1 core + Gen 3/4 suite",hl:true,
+ p:"Split personality: RM Workplace is a ribbon-driven Windows thick client (dense, heavily configurable); Avaloq Wealth / Engage / Insight are modern web with conversational AI.",
+ f:"Order capture via RM Workplace forms or generated from portfolio rebalancing; compliance embedded in the advisory / proposal path.",
+ ai:"Engage + Insight virtual assistant — NLP client-intent detection, next-best-actions, trade proposals inline for the RM (WhatsApp-style channel).",
+ links:[["avaloq.com/solutions/products/avaloq-engage","Engage conversational product page"],["academy.avaloq.com/catalog/Microsite/89","RM Workplace customization course"],["marketplace.uipath.com/listings/avaloq-uipath-free-library","Ribbon UI elements (indirect evidence)"],["thewealthmosaic.com/vendors/avaloq/avaloq-engage/","Engage description"]]},
+{n:"Temenos Wealth / Transact",g:"Gen 1 core + Gen 3 FO",hl:false,
+ p:"Transact securities screens carry green-screen lineage (form-heavy, parameter-driven); Wealth Front Office is a configurable workflow web UI with no-code tooling.",
+ f:"Orders generated from portfolio rebalancing or manual capture → automatic trigger through flexible order-management process with pre/post-trade controls.",
+ ai:"Marketed \u201cAI-driven\u201d; no shipped conversational copilot in the securities UI found.",
+ links:[["temenos.com/products/wealth-management/","Wealth product page"],["temenos.com/products/wealth-management/securities/","Securities module"],["temenos.com/wp-content/uploads/2022/11/WealthSecurities_FactSheet.pdf","Securities factsheet PDF"]]},
+{n:"FNZ",g:"Gen 3",hl:false,
+ p:"Modular cloud-native \u201cFNZ Connect\u201d: digitized adviser workspace + white-labelled investor portals/apps. Planning → execution → custody in one straight-through flow.",
+ f:"Advisers rebalance / model → STP from planning through clearing, custody, settlement; compliance automated in-flow. eKYC in ~35 seconds claimed.",
+ ai:"\u201cAdvisor copilots\u201d for meeting follow-ups (marketing-stage; no shipped-UI screenshots found).",
+ links:[["fnz.com/wealth-management-platforms","Platform overview"],["fnz.com/platform/investor-onboarding","Onboarding / eKYC flow"],["thewealthmosaic.com/vendors/fnz/","Module list"]]},
+{n:"Charles River / State Street Alpha",g:"Gen 2",hl:false,
+ p:"Windows-native dense OEMS; single-blotter philosophy (OMS+EMS combined). Manager Workbench + Trade Blotter + Compliance, customizable via profiles and views.",
+ f:"Generate orders in Manager Workbench (model/target) → pre-trade compliance alerts inline → route from single blotter via broker-neutral FIX network (600+ destinations).",
+ ai:"No shipped conversational copilot in the front-end; Alpha AI is data/ops-layer.",
+ links:[["crd.com/solutions/charles-river-ims/","Product overview"],["crd.com/wp-content/uploads/2022/07/CharlesRiver-IMS-ComplianceOverview.pdf","Compliance workflow PDF"],["trustradius.com/compare-products/bloomberg-terminal-vs-charles-river-ims","63 user reviews"]]},
+{n:"Bloomberg AIM",g:"Gen 2 · archetype",hl:false,
+ p:"Terminal-integrated, ultra-dense dark grids, \u27E8GO\u27E9 command navigation, first introduced 1998. 15,000+ professionals at 900+ firms. Power-user, not pretty.",
+ f:"Rebalance / model in PM\u27E8GO\u27E9 workspace → pre-trade compliance → order creation / allocation → route via EMSX/TSOX to 2,300+ destinations.",
+ ai:"Terminal-level AI exists; no AIM-specific conversational OMS copilot documented.",
+ links:[["professional.bloomberg.com//products/trading/order-management-system/aim/","AIM product page"],["tradersmagazine.com/uncategorized/traders-order-management-systems-overview/","Includes Intraday Market Map screenshot"],["professional.bloomberg.com/solutions/buy-side/trade-execution/","OEMS capabilities"]]},
+{n:"Horizon",g:"Gen 2/3",hl:false,
+ p:"Professional multi-asset trading front-end for market-making / agency; real-time L1/L2, quick click-trading, configurable screens. Deep in HK structured products (BOCI RFQ client).",
+ f:"RFQ received → auto/assisted pricing (built-in vol models or external pricer) → response generated → execute / hedge. Click-trading from the Level 2 book.",
+ ai:"None documented (automation via Horizon Extend scripting, not conversational).",
+ links:[["horizontrading.io/solutions-services/principal-trading-market-making/market-making/","Market-making / position screens"],["horizontrading.io/boci-goes-live-with-horizon/","HK structured-products RFQ workflow"],["cmegroup.com/globex/trading-cme-group-products/trading-applications/files/horizon-software-functionality-detail.pdf","Front-end apps detail PDF"]]},
+{n:"iFAST (FSMOne / iGM)",g:"Gen 3",hl:false,
+ p:"Web + mobile wealth platform: product-supermarket look across funds, bonds, stocks, ETFs. B2C, B2B adviser (iFAST Central) and adviser-assisted iGM. 15,300+ advisers on platform.",
+ f:"Adviser creates transaction → client approves in-app (adviser-assisted model); or DIY self-directed order. Product-financing opt-in flows.",
+ ai:"None specifically documented in-UI.",
+ links:[["play.google.com/store/apps/details?id=com.igmnew","iGM app screenshots (watchlist, holdings)"],["ifastcorp.com/ifastcorp/business/business-divisions.tpl","B2B / B2C platform descriptions"],["ifastgm.com.sg/igm/","iGM adviser-assisted platform"]]},
+{n:"Broadridge (Itiviti / NYFIX)",g:"Gen 2/3",hl:false,
+ p:"Sell-side OEMS: Ullink OMS (multi-asset agency), Tbricks (app-based market-making widgets), NYFIX network + matching. Glue42 desktop interop links apps into one workspace.",
+ f:"Order in blotter → pre-trade risk controls → smart order routing / DMA to 200+ venues → exception & alert management; one-click venue / strategy switching.",
+ ai:"BondGPT exists elsewhere at Broadridge; not documented in this OMS front-end.",
+ links:[["broadridge.com/case-study/capital-markets/steubing-ag-streamlines-trading-and-connectivity-through-broadridges-oms","Workflow case study"],["itiviti.com/","Product suite"],["waterstechnology.com/emerging-technologies/7950719/broadridge-rethinks-the-oms","Glue42 interop / OMS strategy"]]},
+{n:"Enfusion",g:"Gen 3 · benchmark",hl:false,
+ p:"Cloud-native SaaS, single golden dataset front-to-back; customizable layouts across desktop / web / mobile; weekly updates, 300+ enhancements a quarter.",
+ f:"Order from portfolio decision (PMS natively connected to OEMS) → inline compliance (1000s of checks) → route via blotter, order-book double-click, or multi-order ticket. Full mobile order routing.",
+ ai:"Clearwater AI marketed at platform level; no OEMS conversational copilot documented.",
+ links:[["enfusion.com/oems/","OEMS page (order-book double-click, multi-order routing)"],["cwan.com/products/enfusion/","Product page"],["youtube.com/channel/UCe2QySMSI4ETLuOsEWHcnrQ","Enfusion YouTube demos"]]},
+{n:"Limina",g:"Gen 3 · benchmark",hl:false,
+ p:"Fully browser-based IMS; exception-based workflows (automate routine, surface anomalies); no-code compliance rule builder; live-extract IBOR simulation. \u201cMostly intuitive\u201d per reviews.",
+ f:"Raise order (single or multi-portfolio) → forward-looking pre-trade compliance simulation on positions / cash → route to EMS or broker.",
+ ai:"Automation-first (exception-based) rather than conversational AI.",
+ links:[["limina.com/solutions/order-management","OMS screens described"],["limina.com/solutions/overview","Dashboards / exception workflows"],["capterra.com/p/254789/Limina-IMS/","User reviews with usability quotes"]]},
+{n:"BlackRock Aladdin Copilot",g:"Gen 4 · AI benchmark",hl:true,
+ p:"Dense enterprise platform with a conversational overlay: natural-language assistant embedded across Aladdin, permission-dependent, guardrailed, will not give investment advice.",
+ f:"Chat / command surface layered on existing screens; app-context-aware (what's on screen, loaded portfolios). A \u201cbuying shares\u201d query triggers parallel compliance-limit + cash checks.",
+ ai:"Supervised agentic architecture (LangChain / LangGraph, function calling) exposing hundreds of domain APIs; content filtering as first-class UX.",
+ links:[["blackrock.com/aladdin/solutions/aladdin-copilot","Copilot product page"],["zenml.io/llmops-database/agentic-ai-architecture-for-investment-management-platform","Architecture + on-screen context detail"],["microsoft.com/en-us/microsoft-cloud/blog/financial-services/2024/09/30/elevating-investment-management-tech-ai-powered-leadership-from-blackrock-and-microsoft/","Copilot / eFront Copilot context"]]}
+];
+
+/* ---------- render matrix ---------- */
+const domainsEl=document.getElementById('domains');
+DATA.forEach(d=>{
+  const div=document.createElement('div');div.className='domain';div.id='dom'+d.code;
+  let head='<tr><th class="feat">Feature</th>';
+  VENDORS.forEach(v=>head+='<th>'+v+'</th>');
+  head+='<th>Cov.</th></tr>';
+  let body='';
+  d.rows.forEach(r=>{
+    const [id,name,tag,ratings]=r;
+    const yes=[...ratings].filter(c=>c==='Y').length;
+    let tr='<tr class="frow'+(tag==='WS'?' wsrow':'')+'" data-tag="'+tag+'" data-name="'+name.toLowerCase()+'">';
+    tr+='<td class="feat"><span class="fid">'+id+'</span><span class="fname">'+name+'</span><span class="tag '+tag+'">'+tag+'</span></td>';
+    [...ratings].forEach(c=>{
+      const cls=c==='Y'?'cY':c==='P'?'cP':c==='N'?'cN':'cU';
+      const ch=c==='U'?'?':c;
+      tr+='<td><span class="cell '+cls+'">'+ch+'</span></td>';
+    });
+    tr+='<td><span class="cov"><i style="width:'+Math.round(yes/11*100)+'%"></i></span></td></tr>';
+    body+=tr;
+  });
+  div.innerHTML='<h3><span class="code">DOMAIN '+d.code+'</span>'+d.name+'</h3><div class="tblwrap"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  domainsEl.appendChild(div);
+});
+
+/* ---------- filters ---------- */
+let activeTag='ALL', q='';
+function applyFilters(){
+  document.querySelectorAll('.frow').forEach(tr=>{
+    const tagOk=activeTag==='ALL'||tr.dataset.tag===activeTag;
+    const qOk=!q||tr.dataset.name.includes(q);
+    tr.classList.toggle('hidden',!(tagOk&&qOk));
+  });
+  document.querySelectorAll('.domain').forEach(d=>{
+    const any=d.querySelectorAll('.frow:not(.hidden)').length>0;
+    d.style.display=any?'':'none';
+  });
+}
+document.querySelectorAll('.chip').forEach(ch=>{
+  ch.addEventListener('click',()=>{
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+    ch.classList.add('on');activeTag=ch.dataset.f;applyFilters();
+  });
+});
+document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();applyFilters();});
+
+/* ---------- white space ---------- */
+const wsEl=document.getElementById('wslist');
+WS_RANKED.forEach((w,i)=>{
+  const c=document.createElement('div');c.className='wscard';
+  c.innerHTML='<div class="rank">'+String(i+1).padStart(2,'0')+'</div><span class="fid mono">'+w[0]+'</span><h4>'+w[1]+'</h4><p>'+w[2]+'</p>';
+  wsEl.appendChild(c);
+});
+
+/* ---------- generations ---------- */
+const gEl=document.getElementById('gens');
+GENS.forEach(g=>{
+  const d=document.createElement('div');d.className='gen '+g[4];
+  let pills='';g[3].forEach(v=>pills+='<span class="pill">'+v+'</span>');
+  d.innerHTML='<div><div class="g">'+g[0]+'</div><div class="era">'+g[1]+'</div></div><div><p>'+g[2]+'</p><div class="vend">'+pills+'</div></div>';
+  gEl.appendChild(d);
+});
+
+/* ---------- vendor gallery ---------- */
+const vEl=document.getElementById('vendors');
+VCARDS.forEach(v=>{
+  const d=document.createElement('div');d.className='vcard';
+  let links='';v.links.forEach(l=>links+='<li><a href="https://'+l[0]+'" target="_blank" rel="noopener">'+l[0].split('/')[0]+'</a> <span>— '+l[1]+'</span></li>');
+  d.innerHTML='<header><h4>'+v.n+'</h4><span class="gtag'+(v.hl?' hl':'')+'">'+v.g+'</span></header>'
+    +'<p>'+v.p+'</p>'
+    +'<div class="flow"><b>Order-entry flow</b>'+v.f+'</div>'
+    +'<div class="ai">AI pattern — '+v.ai+'</div>'
+    +'<div class="lbl">See the screens</div><ul>'+links+'</ul>';
+  vEl.appendChild(d);
+});
+</script>
+</body>
+</html>
